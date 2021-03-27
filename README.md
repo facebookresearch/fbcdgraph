@@ -38,8 +38,8 @@ Python script for processing the American Community Survey
 Microdata from the 2019 American Community Survey of the U.S. Census Bureau
 
 Regenerating all the figures requires running in the directory ``codes`` every
-Python file there. All but ``code/imagenet.py`` need only CPUs, whereas
-``code/imagenet.py`` runs on a GPU simultaneously with running on CPU cores.
+Python file there. All but ``codes/imagenet.py`` need only CPUs, whereas
+``codes/imagenet.py`` runs on a GPU simultaneously with running on CPU cores.
 
 ********************************************************************************
 
