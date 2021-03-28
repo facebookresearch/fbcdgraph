@@ -1,0 +1,14 @@
+n:
+1281167
+fraction:
+1
+lenscale:
+0.00029591354626715843
+Kuiper:
+0.03306
+Kolmogorov-Smirnov:
+0.03306
+Kuiper / lenscale:
+111.7
+Kolmogorov-Smirnov / lenscale:
+111.7

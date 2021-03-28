@@ -1,0 +1,12 @@
+n:
+2500
+lenscale:
+0.008510649502197784
+Kuiper:
+0.05886
+Kolmogorov-Smirnov:
+0.04818
+Kuiper / lenscale:
+6.916
+Kolmogorov-Smirnov / lenscale:
+5.661
