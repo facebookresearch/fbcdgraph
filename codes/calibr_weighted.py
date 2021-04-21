@@ -139,7 +139,9 @@ def cumulative(r, s, majorticks, minorticks, filename='cumulative.pdf',
                    minor=True)
     ks = ['{:.2f}'.format(a) for a in
           np.arange(0, 1 + 1 / majorticks, 1 / majorticks).tolist()]
-    plt.xticks(x[:lenxf:(lenxf // majorticks)], ks)
+    alist = (lenxf - 1) * np.arange(0, 1 + 1 / majorticks, 1 / majorticks)
+    alist = alist.tolist()
+    plt.xticks([x[int(a)] for a in alist], ks)
     ax2.xaxis.set_minor_formatter(FixedFormatter(
         [r'$A_k\!=\!{:.2f}$'.format(1 / majorticks)]
         + [r'${:.2f}$'.format(k / majorticks) for k in range(2, majorticks)]))

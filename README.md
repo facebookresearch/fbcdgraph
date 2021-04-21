@@ -1,6 +1,7 @@
-The accompanying codes reproduce all figures presented in "Cumulative deviation
-of a subpopulation from the full population" by Mark Tygert. This repository
-also provides the LaTeX and BibTeX sources required for replicating the paper.
+The accompanying codes reproduce all figures and statistics presented in
+"Cumulative deviation of a subpopulation from the full population"
+by Mark Tygert. This repository also provides the LaTeX and BibTeX sources
+required for replicating the paper.
 
 The main files in the repository are the following:
 
