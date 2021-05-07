@@ -134,13 +134,13 @@ def cumulative(r, s, inds, majorticks, minorticks, filename='cumulative.pdf',
     # Add an indicator of the scale of 1/sqrt(n) to the vertical axis.
     rtsub = rt[:int(len(rt) * fraction)]
     lenscale = np.sqrt(np.sum(rtsub * (1 - rtsub))) / len(rtsub)
-    plt.plot(lenscale, 'k')
-    plt.plot(-lenscale, 'k')
+    plt.plot(2 * lenscale, 'k')
+    plt.plot(-2 * lenscale, 'k')
     kwargs = {
-        'head_length': lenscale, 'head_width': len(rtsub) / 20, 'width': 0,
+        'head_length': 2 * lenscale, 'head_width': len(rtsub) / 20, 'width': 0,
         'linewidth': 0, 'length_includes_head': True, 'color': 'k'}
-    plt.arrow(.1e-100, -lenscale, 0, 2 * lenscale, shape='left', **kwargs)
-    plt.arrow(.1e-100, lenscale, 0, -2 * lenscale, shape='right', **kwargs)
+    plt.arrow(.1e-100, -2 * lenscale, 0, 4 * lenscale, shape='left', **kwargs)
+    plt.arrow(.1e-100, 2 * lenscale, 0, -4 * lenscale, shape='right', **kwargs)
     plt.margins(x=0, y=0)
     # Label the major ticks of the lower axis with the values of ss.
     sl = [
