@@ -1,10 +1,3 @@
-%
-% Copyright (c) Facebook, Inc. and its affiliates.
-%
-% This source code is licensed under the MIT license found in the LICENSE file
-% in the root directory of this source tree. 
-%
-
 \documentclass{article}
 \usepackage[margin=.75in]{geometry}
 \usepackage{amsthm,amsmath,amssymb}
@@ -33,7 +26,11 @@
 
 
 \title{Cumulative deviation of a subpopulation from the full population}
-\author{Mark Tygert}
+\author{Mark Tygert\\{\normalsize Facebook Artificial Intelligence Research}\\
+{\normalsize 1 Facebook Way, Menlo Park, CA 94025}\\
+{\normalsize Main e-mail address:\ \ {\tt mark@tygert.com}}\\
+{\normalsize \today}}
+\date{\vspace{-.25in}}
 
 
 
@@ -75,6 +72,11 @@ Such cumulative aggregation furnishes both high-resolution graphical methods
 and simple scalar summary statistics (analogous to those
 of Kuiper and of Kolmogorov and Smirnov used
 in statistical significance testing for comparing probability distributions).
+
+\medskip
+
+\noindent {\bf Keywords:} calibration, differences, fairness, forecast,
+prediction, probabilistic, stochastic, statistical, histogram, visualization
 \end{abstract}
 
 
@@ -95,7 +97,7 @@ for individuals with a given score that belong to the subpopulation
 deviates from the average outcome for all individuals from the full population
 that have that same score.
 
-When there are only finitely many individuals,
+When there are only finitely many observations,
 questions of statistical significance arise;
 for example, if the scores are predicted probabilities
 and the outcomes are drawn from independent (but not necessarily
@@ -210,7 +212,11 @@ then indicates how much the subpopulation deviates from the full population.
 Especially when assessing the calibration or reliability
 of probabilistic predictions, this graphical method is known
 as a ``reliability diagram'' or ``calibration plot,''
-as reviewed, for example, by~\cite{tygert}.
+as reviewed, for example, by~\cite{corbett-davies-pierson-feller-goel-huq}
+and~\cite{crowson-atkinson-therneau}.
+
+A full review of the literature is available in Subsection~\ref{aintro}
+of Appendix~\ref{calibration}.
 
 There are at least two common choices of the bins
 whose endpoints are $B_1$, $B_2$, \dots, $B_{\ell-1}$
@@ -250,15 +256,15 @@ For a simple illustrative example,
 Figure~\ref{5000} displays both the conventional reliability diagrams
 as well as the cumulative plot proposed below.
 A detailed description is available in Subsection~\ref{synthetic} below.
-The middlemost two rows of Figure~\ref{5000} are the classical diagrams,
+The lowermost two rows of Figure~\ref{5000} are the classical diagrams,
 with $m =$ 50,000 and $n =$ 5,000;
 there are $\ell = 10$ bins for each diagram in the second row
 and $\ell = 50$ for each diagram in the third row.
-In the middlemost two rows, the bins are equispaced along the scores
+In the lowermost two rows, the bins are equispaced along the scores
 in the leftmost plots, whereas each bin contains the same number of scores
 from $S_{i_1}$,~$S_{i_2}$, \dots, $S_{i_n}$
 (or from $S_1$,~$S_2$, \dots, $S_m$) in the rightmost plots.
-The lowermost row plots the ordered pairs
+The diagram of Figure~\ref{5000e} plots the ordered pairs
 $(S_1, P_1)$,~$(S_2, P_2)$, \dots, $(S_m, P_m)$ in gray and
 $(S_{i_1}, P_{i_1})$,~$(S_{i_2}, P_{i_2})$, \dots, $(S_{i_n}, P_{i_n})$
 in black, where $P_1$,~$P_2$, \dots, $P_m$ are the expected values
@@ -266,8 +272,9 @@ of $R_1$,~$R_2$, \dots, $R_m$, respectively;
 for this example, $R_1$,~$R_2$, \dots, $R_m$ are drawn independently
 from Bernoulli distributions with probabilities of success
 $P_1$,~$P_2$, \dots, $P_m$.
-Thus, the lowermost plot depicts the ``ground-truth'' expectations
-that the middlemost two rows of classical plots are trying to characterize.
+Thus, Figure~\ref{5000e} depicts the ``ground-truth'' expectations
+that the lowermost two rows of classical plots in Figure~\ref{5000}
+are trying to characterize.
 The gray points correspond to the full population,
 while the solid black points correspond to the subpopulation.
 
@@ -293,58 +300,65 @@ the statistical significance of the overall deviation across all scores,
 in accord with Subsections~\ref{scalarstats} and~\ref{significance} below.
 
 The structure of the remainder of the present paper is as follows:
-Section~\ref{methods} details the statistical methodology
-that Section~\ref{results} illustrates via numerical examples.
-Section~\ref{conclusion} then briefly discusses the numerical results
-and proposes avenues for further development.
-Appendix~\ref{calibration} describes methods
+Section~\ref{methods} details the statistical methodology that
+Section~\ref{results} illustrates
+via numerical examples.\footnote{Permissively licensed open-source software
+implementing (in Python modules) all these methods --- software that also
+reproduces all figures and statistics reported below --- is available at
+\url{https://github.com/facebookresearch/fbcdgraph}}
+Section~\ref{results} also proposes avenues for further development.
+Section~\ref{conclusion} then briefly summarizes the methods
+and numerical results. Appendix~\ref{calibration} describes methods
 for calibrating probabilistic predictions that are analogous
 to the cumulative methodology introduced in Section~\ref{methods}
 for assessing deviation of a subpopulation from the full population.
+Appendix~\ref{calibration} also contains a literature review,
+in Subsection~\ref{aintro}; please consult Subsection~\ref{aintro}
+for a discussion of related work.
 Appendix~\ref{caution} warns about potentially tempting overinterpretations
 of the various plots.
+Table~\ref{notation} gives a glossary of the notation used throughout
+except in the appendices, while Table~\ref{anotation} gives a glossary
+of the notation used in the appendices.
+
 
 
 \newlength{\vertsep}
-\setlength{\vertsep}{.085in}
+\setlength{\vertsep}{.1in}
 \newlength{\imsize}
-\setlength{\imsize}{.365\textwidth}
+\setlength{\imsize}{.465\textwidth}
 
 
 \begin{figure}
 \begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_5000_10_0/cumulative.pdf}}
+                {./codes/unweighted/50000_5000_10_0/cumulative.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_5000_10_0/cumulative_exact.pdf}}
+                {./codes/unweighted/50000_5000_10_0/cumulative_exact.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_5000_10_0/equiscore.pdf}}
+                {./codes/unweighted/50000_5000_10_0/equiscore.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_5000_10_0/equisamps.pdf}}
+                {./codes/unweighted/50000_5000_10_0/equisamps.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_5000_50_0/equiscore.pdf}}
+                {./codes/unweighted/50000_5000_50_0/equiscore.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_5000_50_0/equisamps.pdf}}
-
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_5000_10_0/exact.jpg}}
+                {./codes/unweighted/50000_5000_50_0/equisamps.pdf}}
 
 \end{centering}
 \caption{$n =$ 5,000;
          Kuiper's statistic is $0.2037 / \sigma = 34.34$,
          Kolmogorov's and Smirnov's is $0.2033 / \sigma = 34.27$.
+Figure~\ref{5000e} displays the ground-truth reliability diagram.
 The reliability diagram with 50 bins
 that each contain the same number of scores from the subpopulation
 is able to detect the notch around scores of 0.25;
@@ -363,6 +377,17 @@ of the subpopulation from the full population.
 \label{5000}
 \end{figure}
 
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/50000_5000_10_0/exact.jpg}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{5000}}
+\label{5000e}
+\end{figure}
+
 
 
 \section{Methods}
@@ -377,6 +402,57 @@ for both the graphical methods and the summary statistics.
 Subsection~\ref{weighted} presents a generalization
 of these statistical methodologies to the case of weighted samples
 (beyond just equally or uniformly weighted).
+
+
+\begin{table}
+\caption{Notational conventions for all but the appendices
+(Table~\ref{anotation} summarizes the notation used in the appendices.
+The symbols in the tables are in alphabetical order.)}
+\label{notation}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+& & equation for the & equation for the \\
+symbol & meaning & unweighted case & case with weights \\\hline
+$A_k$ & abscissa for the cumulative graph in the case with weights &
+(Not applicable) & (\ref{abscissae}) \\
+$D$ & Kuiper statistic & (\ref{Kuiper}) & (\ref{Kuiper}) \\
+$\Delta_k$ & expected slope of $F_j - \tilde{F}_j$ from $j = k-1$ to $j = k$ &
+(\ref{delta}) & (\ref{deltaw}) \\
+$F_k$ & cumulative response for the subpopulation &
+(\ref{empirical}) & (\ref{empiricalw}) \\
+$\tilde{F}_k$ & cumulative average response for the full population &
+(\ref{full}) & (\ref{fullw}) \\
+$G$ & Kolmogorov-Smirnov statistic & (\ref{Kolmogorov-Smirnov}) &
+(\ref{Kolmogorov-Smirnov}) \\
+$i_k$ & index of an individual from the subpopulation &
+(\ref{subY}) & (\ref{subYw}) \\
+$P_k$ & actual prob.\ of success for a Bernoulli trial in synthetic data &
+(Subsection~\ref{synthetic}) & (Subsection~\ref{synthetic}) \\
+$R_k$ & response --- (random) dependent variable, outcome,
+or result & (\ref{subY}) & (\ref{subYw}) \\
+$\tilde{R}_k$ & response for the full population averaged to the subpopulation
+& (\ref{average}) & (\ref{averagew}) \\
+$S_k$ & score --- (non-random) independent variable &
+(\ref{subX}) & (\ref{subXw}) \\
+$\sigma$ & scale of random fluctuations over the full range of scores &
+(\ref{stddev}) or~(\ref{empiricalstddev}) &
+(\ref{stddevw}) or~(\ref{empiricalstddevw}) \\
+$V_{i_k}$ & estimate of variance in responses for a narrow bin around $S_{i_k}$
+& (\ref{varest}) & (\ref{varestw}) \\
+$W_k$ & weight & (Not applicable) & (\ref{abscissae}) \\
+$X_k$ & abscissa of the subpopulation for reliability diagrams & (\ref{subX}) &
+(\ref{subXw}) \\
+$\tilde{X}_k$ & abscissa of the full population for reliability diagrams &
+(\ref{fullX}) & (\ref{fullXw}) \\
+$Y_k$ & ordinate of the subpopulation for reliability diagrams & (\ref{subY}) &
+(\ref{subYw}) \\
+$\tilde{Y}_k$ & ordinate of the full population for reliability diagrams &
+(\ref{fullY}) & (\ref{fullYw}) \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 
 \subsection{High-level strategy}
@@ -473,6 +549,7 @@ thus, on a plot with the values for $k$ spaced $1/n$ apart,
 the slope from $j = k-1$ to $j = k$ is
 %
 \begin{equation}
+\label{delta}
 \Delta_k = \E[ R_{i_k} ] - \E[ \tilde{R}_{i_k} ],
 \end{equation}
 %
@@ -675,7 +752,8 @@ and many examples analyzing data from a popular data set in computer vision,
 In cases for which either $R_i = 0$ or $R_i = 1$
 for each $i = 1$, $2$, \dots, $m$,
 and for which the scores are nothing but the probabilities of success,
-that is, $S_i$ is the probability that $R_i = 1$ for $i = 1$, $2$, \dots, $m$,
+that is, $S_i$ is the probability that $R_i = 1$
+(where $i = 1$, $2$, \dots, $m$),
 the tip-to-tip height of the triangle centered at the origin should be
 $4/n$ times the standard deviation of the sum of independent Bernoulli variates
 with success probabilities $S_{i_1}$, $S_{i_2}$, \dots, $S_{i_n}$, that is,
@@ -741,6 +819,7 @@ that is, we replace~(\ref{stddev}) with
 where the empirical variance is
 %
 \begin{equation}
+\label{varest}
 V_{i_k} = \frac{\sum_{i : B_{k-1} < S_i \le B_k} (R_i - \tilde{R}_{i_k})^2}
                {\#\{i : B_{k-1} < S_i \le B_k\}}
 \end{equation}
@@ -779,10 +858,11 @@ for all $k = 1$, $2$, \dots, $n$.
 As reviewed below in Remark~\ref{proofs},
 the expected value of the maximum of the absolute value
 of the standard Brownian motion over the unit interval $[0, 1]$
-is $\sqrt{\pi/2} \approx 1.25$;
-and the discussion by~\cite{masoliver} immediately following Formula~44
-at \url{https://arxiv.org/pdf/1401.4939.pdf} shows that
-the probability distribution of the maximum of the absolute value
+is $\sqrt{\pi/2} \approx 1.25$; and the discussion by~\cite{masoliver}
+immediately following Formula~44
+of the associated arXiv publication\footnote{A freely available preprint
+of~\cite{masoliver} is available at \url{https://arxiv.org/pdf/1401.4939.pdf}}
+shows that the probability distribution of the maximum of the absolute value
 of the standard Brownian motion over $[0, 1]$ is sub-Gaussian,
 decaying past its mean $\sqrt{\pi/2} \approx 1.25$.
 So, values of $G/\sigma$ much greater than 1.25 imply that
@@ -955,6 +1035,7 @@ that is, we replace~(\ref{empiricalstddev}) and~(\ref{stddevw}) with
 where the empirical variance is
 %
 \begin{equation}
+\label{varestw}
 V_{i_k} = \frac{\sum_{i : B_{k-1} < S_i \le B_k} W_i (R_i - \tilde{R}_{i_k})^2}
                {\sum_{i : B_{k-1} < S_i \le B_k} W_i}
 \end{equation}
@@ -1112,14 +1193,17 @@ as a subpopulation of itself).
 
 
 
-\section{Numerical results}
+\section{Results and discussion}
 \label{results}
 
 
 This section illustrates via numerous examples
 the previous section's methods,
 together with the traditional plots --- so-called ``reliability diagrams'' ---
-discussed in the introduction.
+discussed in the introduction.\footnote{Permissively licensed
+open-source software for reproducing all figures
+and statistics reported here is available at
+\url{https://github.com/facebookresearch/fbcdgraph}}
 Subsection~\ref{synthetic} presents several (hopefully insightful)
 toy examples.
 Subsection~\ref{imagenetex} analyzes a popular, unweighted data set of images,
@@ -1127,6 +1211,7 @@ ImageNet.
 Subsection~\ref{census} analyzes a weighted data set,
 the most recent (year 2019) American Community Survey
 of the United States Census Bureau.
+Subsection~\ref{outlook} proposes directions for future developments.
 
 The figures display the classical calibration plots (``reliability diagrams'')
 as well as both the plots of cumulative differences and the exact expectations
@@ -1211,33 +1296,34 @@ and for assessing how the deviations vary as a function of $S_{i_k}$.
 In this subsection, the examples draw observations at random
 from various statistical models so that the underlying ``ground-truth''
 is available. To generate the corresponding figures,
-Figures~\ref{5000}--\ref{2500w}, we specify values for the scores
+Figures~\ref{5000}--\ref{2500we}, we specify values for the scores
 $S_1$,~$S_2$, \dots, $S_m$ and for the indices $i_1$,~$i_2$, \dots, $i_n$.
 We also select probabilities $P_1$,~$P_2$, \dots, $P_m$
 and then independently draw the outcomes $R_1$,~$R_2$, \dots, $R_m$
 from the Bernoulli distributions with parameters $P_1$,~$P_2$, \dots, $P_m$,
 respectively. The first three examples,
-corresponding to Figures~\ref{5000}--\ref{2500}, use unweighted
+corresponding to Figures~\ref{5000}--\ref{2500e}, use unweighted
 (or, equivalently, uniformly weighted) data;
-the fourth example, corresponding to Figure~\ref{2500w}, uses weighted data,
-in which each pair of score $S_i$ and result $R_i$ comes
+the fourth example, corresponding to Figures~\ref{2500w} and~\ref{2500we},
+uses weighted data, in which each pair of score $S_i$ and result $R_i$ comes
 with an additional positive scalar weight $W_i$.
 Appendix~\ref{caution} illustrates the degenerate case of when deviation
 is absent, via further examples.
 
-The top rows of Figures~\ref{5000}--\ref{2500} plot $F_k-\tilde{F}_k$
-from~(\ref{empirical}) and~(\ref{full}) as a function of $k/n$,
-with the rightmost plot displaying its noiseless expected value
+The top rows of Figures~\ref{5000}, \ref{3300}, and~\ref{2500} plot
+$F_k-\tilde{F}_k$ from~(\ref{empirical}) and~(\ref{full}) as a function
+of $k/n$, with the rightmost plot displaying its noiseless expected value
 rather than using the random observations $R_1$,~$R_2$, \dots, $R_m$.
 The top row of Figure~\ref{2500w} plots $F_k-\tilde{F}_k$
 from~(\ref{empiricalw}) and~(\ref{fullw}) versus
 the cumulative weight $A_k$ from~(\ref{abscissae}),
 with the rightmost plot displaying its noiseless expected value
 rather than using the random observations $R_1$,~$R_2$, \dots, $R_m$.
-The bottom rows of Figures~\ref{5000}--\ref{2500w} plot the pairs
+Figures~\ref{5000e}, \ref{3300e}, \ref{2500e}, and~\ref{2500we} plot the pairs
 $(S_1, P_1)$,~$(S_2, P_2)$, \dots, $(S_m, P_m)$ in gray, and plot the pairs
 $(S_{i_1}, P_{i_1})$,~$(S_{i_2}, P_{i_2})$, \dots, $(S_{i_n}, P_{i_n})$
-in black, producing ground-truth diagrams that the middle two rows of plots
+in black, producing ground-truth diagrams that the lowermost two rows of plots
+from the associated Figures~\ref{5000}, \ref{3300}, \ref{2500}, and~\ref{2500w}
 are trying to estimate using only the observations $R_1$,~$R_2$, \dots, $R_m$,
 without access to the underlying probabilities $P_1$,~$P_2$, \dots, $P_m$.
 
@@ -1252,7 +1338,7 @@ and gray connecting-lines to indicate the full population,
 and solid black points and black connecting-lines to indicate
 the specific subpopulation under consideration.
 
-For the first example, corresponding to Figure~\ref{5000},
+For the first example, corresponding to Figures~\ref{5000} and~\ref{5000e},
 we consider a mixture of subpopulations with a reasonably wide range
 of expected outcomes for most ranges of scores, except for a narrow notch
 around scores of 0.25 which lacks the significant subpopulation deviation.
@@ -1267,11 +1353,11 @@ where $m/2$ corresponds to the middle of the notch.
 The total number of scores considered is $m =$ 50,000, and
 (following the refinement) the number of subpopulation indices is $n =$ 5,000.
 
-For the second example, corresponding to Figure~\ref{3300}, we consider
-a mixture of subpopulations that includes one whose expected outcomes
-oscillate smoothly between the minimum and the maximum of the expected outcomes
-of all subpopulations as a function of the score; we analyze that particular
-one subpopulation for deviations from the full population.
+For the second example, corresponding to Figures~\ref{3300} and~\ref{3300e},
+we consider a mixture of subpopulations that includes one whose expected
+outcomes oscillate smoothly between the minimum and the maximum of the
+expected outcomes of all subpopulations as a function of the score; we analyze
+that particular one subpopulation for deviations from the full population.
 The scores are $S_j = (j - 0.5) / m$ for $j = 1$,~$2$, \dots, $m$,
 hence equispaced between 0 and 1.
 The total number of scores considered is $m =$ 50,000.
@@ -1280,7 +1366,7 @@ we raise to the power $4/3$ each positive integer,
 then round to the nearest integer,
 and finally retain the lowest $n =$ 3,300 unique resulting integers.
 
-For the third example, corresponding to Figure~\ref{2500},
+For the third example, corresponding to Figures~\ref{2500} and~\ref{2500e},
 we consider a mixture of subpopulations similar to that for the second example,
 but this time selecting for analysis a subpopulation
 whose expected outcomes oscillate in discrete steps between the minimum
@@ -1294,7 +1380,7 @@ retain the first $n$, and then sort them.
 The total number of scores considered is $m =$ 50,000,
 and the number of subpopulation indices is $n =$ 2,500.
 
-For the fourth example, corresponding to Figure~\ref{2500w},
+For the fourth example, corresponding to Figures~\ref{2500w} and~\ref{2500we},
 we consider weighted samples (whereas the three previous examples
 all used unweighted or uniformly weighted data,
 in which all weights would be equal).
@@ -1320,8 +1406,8 @@ The captions of the figures comment on the numerical results displayed.
 
 \begin{remark}
 \label{Simpson}
-If (as in Figure~\ref{2500w}) the weight $W_i$ for some single observation
-is extraordinarily disproportionately high, then any bin
+If (as in Figures~\ref{2500w} and~\ref{2500we}) the weight $W_i$ for some
+single observation is extraordinarily disproportionately high, then any bin
 containing that observation will be strongly biased toward only that individual
 observation, blind to the other observations in the bin. Such a phenomenon
 can lead to misleading behavior akin to Simpson's Paradox of~\cite{simpson}
@@ -1354,40 +1440,36 @@ for calibration (that is, similar to ``de-trending'').
 \begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_3300_10_2/cumulative.pdf}}
+                {./codes/unweighted/50000_3300_10_2/cumulative.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_3300_10_2/cumulative_exact.pdf}}
+                {./codes/unweighted/50000_3300_10_2/cumulative_exact.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_3300_10_2/equiscore.pdf}}
+                {./codes/unweighted/50000_3300_10_2/equiscore.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_3300_10_2/equisamps.pdf}}
+                {./codes/unweighted/50000_3300_10_2/equisamps.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_3300_50_2/equiscore.pdf}}
+                {./codes/unweighted/50000_3300_50_2/equiscore.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_3300_50_2/equisamps.pdf}}
-
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_3300_10_2/exact.jpg}}
+                {./codes/unweighted/50000_3300_50_2/equisamps.pdf}}
 
 \end{centering}
 \caption{$n =$ 3,300;
          Kuiper's statistic is $0.01621 / \sigma = 2.243$,
          Kolmogorov's and Smirnov's is $0.009983 / \sigma = 1.381$.
+Figure~\ref{3300e} displays the ground-truth reliability diagram.
 Distinguishing random fluctuations from real variations
 is difficult in the reliability diagrams with 50 bins each.
 The reliability diagrams that each have only 10 bins could be misleading,
-as the depicted variations in the subpopulations's outcomes are grossly
+as the depicted variations in the subpopulation's outcomes are grossly
 lower than the actual underlying variations as a function of score.
 The plot of cumulative deviation is far from perfect, yet captures
 the exact expectations quite well qualitatively
@@ -1404,46 +1486,53 @@ whose mean is small.
 \label{3300}
 \end{figure}
 
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/50000_3300_10_2/exact.jpg}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{3300}}
+\label{3300e}
+\end{figure}
+
 
 \begin{figure}
 \begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_2500_10_1/cumulative.pdf}}
+                {./codes/unweighted/50000_2500_10_1/cumulative.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_2500_10_1/cumulative_exact.pdf}}
+                {./codes/unweighted/50000_2500_10_1/cumulative_exact.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_2500_10_1/equiscore.pdf}}
+                {./codes/unweighted/50000_2500_10_1/equiscore.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_2500_10_1/equisamps.pdf}}
+                {./codes/unweighted/50000_2500_10_1/equisamps.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_2500_50_1/equiscore.pdf}}
+                {./codes/unweighted/50000_2500_50_1/equiscore.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_2500_50_1/equisamps.pdf}}
-
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/unweighted/50000_2500_10_1/exact.jpg}}
+                {./codes/unweighted/50000_2500_50_1/equisamps.pdf}}
 
 \end{centering}
 \caption{$n =$ 2,500;
          Kuiper's statistic is $0.05536 / \sigma = 6.586$,
          Kolmogorov's and Smirnov's is $0.04554 / \sigma = 5.418$.
-The reliability diagrams fail to depict
+Figure~\ref{2500e} displays the ground-truth reliability diagram.
+The observed reliability diagrams fail to depict
 the underlying discontinuous jumps in the subpopulation's expected outcomes
 as a function of the score. The plot of cumulative deviation succeeds
 in resolving some of the corresponding cusps, but does exhibit significant
-random fluctuations nearly as high as half the height of the triangle
+random fluctuations nearly as high as a quarter of the height of the triangle
 at the origin.
 The scalar summary statistics successfully
 detect the statistically significant deviation
@@ -1452,41 +1541,48 @@ of the subpopulation from the full population.
 \label{2500}
 \end{figure}
 
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/50000_2500_10_1/exact.jpg}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{2500}}
+\label{2500e}
+\end{figure}
+
 
 \begin{figure}
 \begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/weighted/50000_2500_10_3/cumulative.pdf}}
+                {./codes/weighted/50000_2500_10_3/cumulative.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/weighted/50000_2500_10_3/cumulative_exact.pdf}}
+                {./codes/weighted/50000_2500_10_3/cumulative_exact.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/weighted/50000_2500_10_3/equiscores.pdf}}
+                {./codes/weighted/50000_2500_10_3/equiscores.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/weighted/50000_2500_10_3/equierrs.pdf}}
+                {./codes/weighted/50000_2500_10_3/equierrs.pdf}}
 
 \vspace{\vertsep}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/weighted/50000_2500_50_3/equiscores.pdf}}
+                {./codes/weighted/50000_2500_50_3/equiscores.pdf}}
 \quad\quad
 \parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/weighted/50000_2500_50_3/equierrs.pdf}}
-
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                 {./codes/weighted/50000_2500_10_3/exact.jpg}}
+                {./codes/weighted/50000_2500_50_3/equierrs.pdf}}
 
 \end{centering}
 \caption{$n =$ 2,500, with weighted sampling;
          Kuiper's statistic is $0.03490 / \sigma = 3.318$,
          Kolmogorov's and Smirnov's is $0.03490 / \sigma = 3.318$.
+Figure~\ref{2500we} displays the ground-truth reliability diagram.
 The cumulative plot displays the distinguished observation
 from the subpopulation as a straight, steep jump at its score around 0.75;
 the constant slope of that steep jump shows that the corresponding
@@ -1495,13 +1591,24 @@ is due to a single highly weighted observation. This single observation has
 no effect on the slopes in the rest of the cumulative plot,
 whereas the few highly weighted observations dramatically
 (perhaps misleadingly?)\
-alter the bins around scores of 0.75 in the reliability diagrams.
+alter the bins around scores of 0.75 in the observed reliability diagrams.
 The scalar summary statistics report
 statistically significant deviation of the subpopulation
 from the full population, though the steep jump in the cumulative plot
 reduces the effectiveness of the scalar statistics.
 }
 \label{2500w}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/weighted/50000_2500_10_3/exact.jpg}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{2500w}}
+\label{2500we}
 \end{figure}
 
 
@@ -2088,9 +2195,10 @@ of scores on the horizontal axis.}
 \label{census}
 
 This subsection analyzes the latest (year 2019) microdata
-from the American Community Survey of the U.S. Census Bureau,
-available at \url{https://www.census.gov/programs-surveys/acs/microdata.html}
-\dots\ specifically, we consider the full population to be the members
+from the American Community Survey of the U.S. Census Bureau;\footnote{The data
+from the American Community Survey is available
+at \url{https://www.census.gov/programs-surveys/acs/microdata.html}}
+specifically, we consider the full population to be the members
 from all counties in California put together, and consider the subpopulation
 to be the observations from an individual county.
 The sampling in this survey is weighted;
@@ -2359,7 +2467,62 @@ statistically significant deviation here.
 
 
 
-\section{Discussion and conclusion}
+\subsection{Future outlook}
+\label{outlook}
+
+This subsection suggests generalizations suitable for future research.
+
+The present paper plots the cumulative differences
+between the results of a subpopulation and the results of the full population,
+accumulated as a function of a scalar real-valued score.
+If instead the scores to be accumulated are from a Euclidean or Hilbert space
+of more than one dimension, a natural generalization is to impose
+a total order on the scores via a space-filling curve
+such as the Peano or Hilbert curves, effectively replacing
+the space of more than one dimension with a one-dimensional ordering.
+Space-filling curves constructed via quad-trees in two-dimensional space
+or oct-trees in three-dimensional space can be especially efficient.
+Google's S2 Geometry Library, which drives Google Maps, Foursquare, MongoDB,
+et al., employs a Hilbert curve.\footnote{Google's S2 Geometry Library
+is described at \url{https://s2geometry.io/devguide/s2cell_hierarchy.html}}
+
+The present paper focuses on deviations of a subpopulation
+from the full population; comparing the subpopulation to the full population
+is always legitimate, as binning or interpolating from the scores
+of the full population to those of the subpopulation happens at a scale
+finer than the subpopulation's sampling, and there is always at least one score
+in the full population corresponding to each score in the subpopulation
+(namely, the same score). In contrast, assessing deviations
+between two different subpopulations that do not have an explicit pairing
+for each score can be problematic. Indeed, the ranges of scores
+for the subpopulations may not even overlap ---
+the scores for one subpopulation can all be significantly
+less than all the scores for another subpopulation, for instance.
+Binning or interpolating from one subpopulation to another can be ill-posed.
+And even when binning or interpolating from one subpopulation
+to a second subpopulation is well-posed, binning or interpolating
+from that second subpopulation to the first subpopulation can be ill-posed
+--- the comparison may not be reflexively well-posed. In general,
+a partial ordering governs the comparisons --- we can always analyze deviations
+of any subpopulation from any larger population containing the subpopulation,
+but cannot always reliably analyze deviations between two different
+subpopulations of the same larger population.
+Applications demanding direct comparison between different subpopulations
+are currently the subject of intensive investigation,
+far beyond the scope of the present paper
+except in the special case that the different subpopulations are paired
+for each score. One possibility for the general case is to bin
+both subpopulations being compared to the same finest binning such that
+both subpopulations have at least one score in each bin;
+however, interpreting significance in this general case can be tricky.
+Forthcoming work will treat the special case for which no score
+associated with any observation from either subpopulation being compared
+is exactly equal to the score for any other observation
+from the two subpopulations.
+
+
+
+\section{Conclusion}
 \label{conclusion}
 
 Plotting the cumulative differences between the outcomes for the subpopulation
@@ -2385,55 +2548,77 @@ The scalar metrics of Kuiper and of Kolmogorov and Smirnov
 conveniently summarize the overall statistical significance of deviations
 displayed in the graph.
 
-The present paper plots the cumulative differences
-between the results of a subpopulation and the results of the full population,
-accumulated as a function of a scalar real-valued score.
-If instead the scores to be accumulated are from a Euclidean or Hilbert space
-of more than one dimension, a natural generalization is to impose
-a total order on the scores via a space-filling curve
-such as the Peano or Hilbert curves, effectively replacing
-the space of more than one dimension with a one-dimensional ordering.
-Space-filling curves constructed via quad-trees in two-dimensional space
-or oct-trees in three-dimensional space can be especially efficient.
-Google's S2 Geometry Library, which drives Google Maps, Foursquare, MongoDB,
-et al., employs a Hilbert curve as described at
-\url{https://s2geometry.io/devguide/s2cell_hierarchy.html}
-
-The present paper focuses on deviations of a subpopulation
-from the full population; comparing the subpopulation to the full population
-is always legitimate, as binning or interpolating from the scores
-of the full population to those of the subpopulation happens at a scale
-finer than the subpopulation's sampling, and there is always at least one score
-in the full population corresponding to each score in the subpopulation
-(namely, the same score). In contrast, assessing deviations
-between two different subpopulations that do not have an explicit pairing
-for each score can be problematic. Indeed, the ranges of scores
-for the subpopulations may not even overlap ---
-the scores for one subpopulation can all be significantly
-less than all the scores for another subpopulation, for instance.
-Binning or interpolating from one subpopulation to another can be ill-posed.
-And even when binning or interpolating from one subpopulation
-to a second subpopulation is well-posed, binning or interpolating
-from that second subpopulation to the first subpopulation can be ill-posed
---- the comparison may not be reflexively well-posed. In general,
-a partial ordering governs the comparisons --- we can always analyze deviations
-of any subpopulation from any larger population containing the subpopulation,
-but cannot always reliably analyze deviations between two different
-subpopulations of the same larger population.
-Applications demanding direct comparison between different subpopulations
-will require investigation far beyond the scope of the present paper,
-except in the special case that the different subpopulations are paired
-for each score. One possibility for the general case is to bin
-both subpopulations being compared to the same finest binning such that
-both subpopulations have at least one score in each bin;
-however, interpreting significance in this general case can be tricky.
 
 
+\section*{Declarations}
 
-\section*{Acknowledgements}
 
-We would like to thank Tiffany Cai, Joaquin Candela, Sam Corbett-Davies,
-Kenneth Hung, Mike Rabbat, Jonathan Tannen, and Edmund Tong.
+\subsection*{Ethics approval and consent to participate}
+
+Not applicable.
+
+
+\subsection*{Consent for publication}
+
+Not applicable.
+
+
+\subsection*{Availability of data and materials}
+
+The data sets generated during and/or analyzed during the current study
+are available in the following repositories:
+%
+\begin{itemize}
+\item \url{https://github.com/facebookresearch/fbcdgraph}
+(for all synthetic data sets)
+\item \url{http://image-net.org/download-images}
+(for ImageNet)
+\item \url{https://www2.census.gov/programs-surveys/acs/data/pums/2019/1-Year}
+(for California households file {\tt csv\_hca.zip}
+--- which includes the file {\tt psam\_h06.csv} that our software processes ---
+from the 2019 American Community Survey of the U.S. Census Bureau)
+\end{itemize}
+
+\noindent MIT-licensed open-source codes in Python 3 and shell scripts
+that automatically reproduce all figures and statistics of the present paper
+are publicly available in the repository {\tt fbcdgraph} at
+\url{https://github.com/facebookresearch/fbcdgraph}
+
+
+\subsection*{Competing interests}
+
+M.T. is employed by and holds stock in Facebook.
+
+
+\subsection*{Funding}
+
+M.T. is employed by Facebook and conducted this research
+as part of his job responsibilities.
+
+
+\subsection*{Author's contributions}
+
+M.T. is the sole author.
+
+
+\subsection*{Acknowledgements}
+
+We would like to thank Tiffany Cai, Joaquin Qui\~nonero Candela,
+Sam Corbett-Davies, Kenneth Hung, Imanol Arrieta Ibarra, Mike Rabbat,
+Jonathan Tannen, Edmund Tong, and the anonymous reviewers and editor.
+
+
+\subsection*{Author's information}
+
+\noindent Mark Tygert, 786 Coleman Ave., Apt. L, Menlo Park, CA 94025-2440
+
+\noindent {\tt mark@tygert.com}
+
+\noindent \url{http://tygert.com}
+
+
+
+\clearpage
 
 
 
@@ -2442,7 +2627,7 @@ Kenneth Hung, Mike Rabbat, Jonathan Tannen, and Edmund Tong.
 \label{calibration}
 
 
-\subsection{Introduction}
+\subsection{Introduction to assessing calibration}
 \label{aintro}
 
 This appendix treats calibration, specifically,
@@ -2500,11 +2685,11 @@ of probabilistic predictions is known as a ``reliability diagram''
 or ``calibration plot,'' as reviewed, for example, by~\cite{tygert}.
 Copious examples of such reliability diagrams are available
 in the figures below, as well as in the works
-of~\cite{brocker}, \cite{brocker-smith},
-\cite{corbett-davies-pierson-feller-goel-huq},
-\cite{crowson-atkinson-therneau}, \cite{gneiting-balabdaoui-raftery},
-\cite{guo-pleiss-sun-weinberger}, \cite{murphy-winkler},
-\cite{vaicenavicius-widmann-andersson-lindsten-roll-schoen}, \cite{wilks},
+of~\cite{corbett-davies-pierson-feller-goel-huq},
+\cite{crowson-atkinson-therneau}, \cite{murphy-winkler}, \cite{brocker},
+\cite{wilks}, \cite{brocker-smith}, \cite{gneiting-balabdaoui-raftery},
+\cite{guo-pleiss-sun-weinberger},
+\cite{vaicenavicius-widmann-andersson-lindsten-roll-schoen},
 and many others; those works consider applications ranging
 from weather forecasting to medical prognosis to fairness in criminal justice
 to quantifying the uncertainty in predictions of artificial neural networks.
@@ -2521,10 +2706,16 @@ that is, $\#\{j : B_{k-1} < S_j \le B_k\}$, be the same for all $k$
 if $n$ is not perfectly divisible by $\ell$).
 In contrast to the classical approach,
 the methods of the following subsections avoid binning.
+Recently, \cite{gupta-rahimi-ajanthan-mensink-sminchisescu-hartley}
+and~\cite{roelofs-cain-shlens-mozer} have forcefully reiterated
+serious problems with existing binned methodologies.
 
-Other works, such as Section~3.2 of~\cite{gneiting-balabdaoui-raftery},
+There have been a number of proposals to measure calibration
+via Kolmogorov-Smirnov statistics, without binning, including
+by~\cite{gupta-rahimi-ajanthan-mensink-sminchisescu-hartley} and~\cite{tygert}.
+Section~3.2 of~\cite{gneiting-balabdaoui-raftery},
 Chapter 8 of~\cite{wilks}, and Figure~1
-of~\cite{gupta-rahimi-ajanthan-mensink-sminchisescu-hartley},
+of~\cite{gupta-rahimi-ajanthan-mensink-sminchisescu-hartley}
 also point to the utility of cumulative reliability diagrams and plots
 somewhat similar to those in the present paper.
 The particular plots proposed below focus on calibration specifically,
@@ -2573,6 +2764,9 @@ with Subsubsections~\ref{ascalarstats} and~\ref{asignificance} below.
 The structure of the remainder of this appendix is as follows:
 Subsection~\ref{amethods} details the cumulative methods,
 and Subsection~\ref{aresults} then illustrates them via several examples.
+Table~\ref{anotation} gives a glossary of the notation used
+in the appendices, while Table~\ref{notation} gives a glossary
+of the notation used prior to the appendices.
 
 
 \begin{figure}
@@ -2618,7 +2812,7 @@ without dividing by $\sigma$).
 \end{figure}
 
 
-\subsection{Methods}
+\subsection{Methods for assessing calibration}
 \label{amethods}
 
 This subsection provides a detailed mathematical formulation
@@ -2631,7 +2825,41 @@ Subsubsection~\ref{asignificance} treats statistical significance
 for both the graphical methods and the summary statistics.
 
 
-\subsubsection{High-level strategy}
+\begin{table}
+\caption{Notational conventions for the appendices
+(Table~\ref{notation} summarizes the notation used before the appendices.
+The symbols in the tables are in alphabetical order.)}
+\label{anotation}
+\begin{center}
+\begin{tabular}{lll}
+\hline
+symbol & meaning & equation \\\hline
+$D$ & Kuiper statistic & (\ref{aKuiper}) \\
+$\Delta_k$ & expected slope of $F_j - \tilde{F}_j$ from $j = k-1$ to $j = k$ &
+(\ref{adelta}) \\
+$F_k$ & cumulative response & (\ref{cumresponse}) \\
+$\tilde{F}_k$ &
+cumulative perfectly calibrated response (cumulative success probability) &
+(\ref{expresponse}) \\
+$G$ & Kolmogorov-Smirnov statistic & (\ref{aKolmogorov-Smirnov}) \\
+$P_k$ & actual probability of success for a Bernoulli trial in synthetic data
+& (Subsection~\ref{aresults}) \\
+$R_k$ & response --- (random) dependent variable, outcome, or result &
+(\ref{null}) \\
+$S_k$ & success probability score --- (non-random) independent variable &
+(\ref{null}) \\
+$\sigma$ &
+scale of random fluctuations over the full range of success probabilities &
+(\ref{astddev}) \\
+$X_k$ & abscissa of the observations for reliability diagrams & (\ref{avgX}) \\
+$Y_k$ & ordinate of the observations for reliability diagrams & (\ref{avgY}) \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\subsubsection{High-level strategy for assessing calibration}
 \label{ahigh-level}
 
 This subsubsection proposes a process for large-scale data analysis.
@@ -2657,7 +2885,7 @@ the first stage collapses the graph into a single scalar summary statistic.
 The following subsubsection constructs the graph.
 
 
-\subsubsection{Graphical method}
+\subsubsection{Graphical method for assessing calibration}
 \label{agraphical}
 
 This subsubsection details the construction of cumulative plots
@@ -2696,6 +2924,7 @@ thus, on a plot with the values for $k$ spaced $1/n$ apart,
 the slope from $j = k-1$ to $j = k$ is
 %
 \begin{equation}
+\label{adelta}
 \Delta_k = \E[ R_k ] - S_k
 \end{equation}
 %
@@ -2718,7 +2947,7 @@ the expected random fluctuations.
 Many examples of plots are available in Subsection~\ref{aresults}.
 
 
-\subsubsection{Scalar summary statistics}
+\subsubsection{Scalar summary statistics for assessing calibration}
 \label{ascalarstats}
 
 This subsubsection details the construction of summary statistics
@@ -2731,12 +2960,14 @@ of success probabilities that account for expected random fluctuations
 are that due to Kolmogorov and Smirnov, the maximum absolute deviation
 %
 \begin{equation}
+\label{aKolmogorov-Smirnov}
 G = \max_{1 \le k \le n} |F_k-\tilde{F}_k|,
 \end{equation}
 %
 and that due to Kuiper, the size of the range of the deviations
 %
 \begin{equation}
+\label{aKuiper}
 D = \max_{0 \le k \le n} (F_k-\tilde{F}_k)
   - \min_{0 \le k \le n} (F_k-\tilde{F}_k),
 \end{equation}
@@ -2760,6 +2991,7 @@ of the sum of independent Bernoulli variates whose probabilities of success
 are $S_1$, $S_2$, \dots, $S_n$, that is,
 %
 \begin{equation}
+\label{astddev}
 \sigma = \frac{1}{n} \sqrt{\sum_{j=1}^n S_j (1-S_j)};
 \end{equation}
 %
@@ -2774,18 +3006,20 @@ the expected value of $G/\sigma$ is less than or equal to
 the expected value of the maximum (over a subset of the unit interval $[0, 1]$)
 of the absolute value of the standard Brownian motion
 over the unit interval $[0, 1]$, in the limit $n \to \infty$.
-As discussed by~\cite{masoliver}
-(with $x = 0$ and $D = 1$ in Formula~46 at
-\url{https://arxiv.org/pdf/1401.4939.pdf}
-\dots\ or see immediately before Remark~I at%
+As discussed by~\cite{masoliver} (with $x = 0$ and $D = 1$ in Formula~46
+from the associated arXiv publication\footnote{A freely available preprint
+of~\cite{masoliver} is available at \url{https://arxiv.org/pdf/1401.4939.pdf}}
+\dots\ or see immediately before Remark~I
+on the relevant StackExchange thread\footnote{The associated discussion
+on StackExchange is available at
 {\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks\do\/\do-}
-\url{https://math.stackexchange.com/questions/3251957/calculating-the-expecation-of-the-supremum-of-absolute-value-of-a-brownian-motion}}
-for a different derivation),
+\url{https://math.stackexchange.com/questions/3251957/calculating-the-expecation-of-the-supremum-of-absolute-value-of-a-brownian-motion}}}),
 the expected value of the maximum of the absolute value
 of the standard Brownian motion over $[0, 1]$ is $\sqrt{\pi/2} \approx 1.25$.
 The discussion by~\cite{masoliver} immediately following Formula~44
-at \url{https://arxiv.org/pdf/1401.4939.pdf} shows that
-the probability distribution of the maximum of the absolute value
+from the associated arXiv publication\footnote{A freely available preprint
+of~\cite{masoliver} is available at \url{https://arxiv.org/pdf/1401.4939.pdf}}
+shows that the probability distribution of the maximum of the absolute value
 of the standard Brownian motion over $[0, 1]$ is sub-Gaussian,
 decaying past its mean $\sqrt{\pi/2} \approx 1.25$.
 Values of $G/\sigma$ much greater than 1.25 imply serious miscalibration,
@@ -2795,7 +3029,8 @@ Needless to say, similar remarks pertain to $D$.
 \end{remark}
 
 
-\subsubsection{Significance of stochastic fluctuations}
+\subsubsection{Significance of stochastic fluctuations
+for assessing calibration}
 \label{asignificance}
 
 This subsubsection discusses statistical significance
@@ -2826,18 +3061,20 @@ around an empirical cumulative distribution function
 given by Kolmogorov and Smirnov, as reviewed by~\cite{doksum}.
 
 
-\subsection{Numerical results}
+\subsection{Results and discussion for assessing calibration}
 \label{aresults}
 
 This subsection illustrates via several examples
 the previous subsection's methods,
 together with the traditional plots --- so-called ``reliability diagrams'' ---
-discussed in Subsection~\ref{aintro}.
+discussed in Subsection~\ref{aintro}.\footnote{Permissively licensed
+open-source software for reproducing all figures and statistics displayed here
+is available at \url{https://github.com/facebookresearch/fbcdgraph}}
 Subsubsection~\ref{asynthetic} presents toy examples.
 Subsubsection~\ref{aimagenetex} analyzes a popular data set of images,
 ImageNet.
 
-Figures~\ref{imagenetcal}--\ref{100_1} display the classical calibration plots
+Figures~\ref{imagenetcal}--\ref{100_1e} display the classical calibration plots
 as well as both the plots of cumulative differences and the exact expectations
 in the absence of noise from random sampling when the exact expectations
 are available (as in Subsubsection~\ref{asynthetic}).
@@ -2853,7 +3090,7 @@ $P_1$,~$P_2$, \dots, $P_n$ differs from $S_1$,~$S_2$, \dots, $S_n$.
 Appendix~\ref{caution} considers the case in which $P_k = S_k$
 for all $k = 1$,~$2$, \dots, $n$.
 
-The top rows of the figures plot $F_k-\tilde{F}_k$
+The top rows of the figures with three rows plot $F_k-\tilde{F}_k$
 from~(\ref{cumresponse}) and~(\ref{expresponse}) as a function of $k/n$,
 with the rightmost plot displaying its noiseless expected value
 rather than using the observations $R_1$,~$R_2$, \dots, $R_n$
@@ -2862,16 +3099,16 @@ are unknown in that case).
 In each of these plots,
 the upper axis specifies $k/n$, while the lower axis specifies $S_k$
 for the corresponding value of $k$.
-The next two rows of the figures plot the pairs
+The lowermost two rows of the figures with three rows plot the pairs
 $(X_1, Y_1)$,~$(X_2, Y_2)$, \dots, $(X_{\ell}, Y_{\ell})$
 from~(\ref{avgY}) and~(\ref{avgX}),
 with the rightmost plots using an equal number of observations per bin.
-The dark black lines and points of the left and right plots in the middle rows
-of Figures~\ref{10000}--\ref{100} are in fact identical,
-since $S_1$,~$S_2$, \dots, $S_n$ are equispaced
+The dark black lines and points of the left and right plots in the lowermost
+two rows of Figures~\ref{10000}, \ref{1000}, and~\ref{100} are in fact
+identical, since $S_1$,~$S_2$, \dots, $S_n$ are equispaced
 for those examples (so equally wide bins contain equal numbers
-of observations). The bottom rows of Figures~\ref{10000}--\ref{100_1}
-again plot pairs $(X_1, Y_1)$,~$(X_2, Y_2)$, \dots, $(X_n, Y_n)$
+of observations). The figures with only a single diagram
+plot pairs $(X_1, Y_1)$,~$(X_2, Y_2)$, \dots, $(X_n, Y_n)$
 from~(\ref{avgY}) and~(\ref{avgX}),
 but this time using their noiseless expected values
 $(S_1, P_1)$,~$(S_2, P_2)$, \dots, $(S_n, P_n)$
@@ -2915,37 +3152,40 @@ with higher confidence yet limits the resolution for detecting miscalibration
 and for assessing the dependence of calibration as a function of $S_k$.
 
 
-\subsubsection{Synthetic}
+\subsubsection{Synthetic examples for assessing calibration}
 \label{asynthetic}
 
 In this subsubsection, the examples are sampled randomly
 from various statistical models so that the underlying ``ground-truth''
 is known explicitly.
 
-Figures~\ref{10000}--\ref{100} all draw from the same underlying distribution
+Figures~\ref{10000}--\ref{100e} all draw from the same underlying distribution
 that deviates linearly as a function of $k$ from the distribution of $S_k$,
 and $S_1$, $S_2$, \dots, $S_n$ are equispaced;
-Figure~\ref{10000} sets $n =$ 10,000, Figure~\ref{1000} sets $n =$ 1,000,
-and Figure~\ref{100} sets $n =$ 100.
+Figures~\ref{10000} and~\ref{10000e} set $n =$ 10,000,
+Figures~\ref{1000} and~\ref{1000e} set $n =$ 1,000,
+and Figures~\ref{100} and~\ref{100e} set $n =$ 100.
 Overall, the cumulative plots seem more informative
-(or at least easier to interpret) in Figures~\ref{10000}--\ref{100},
+(or at least easier to interpret) in Figures~\ref{10000}--\ref{100e},
 but only mildly.
 
-Figures~\ref{10000_0}--\ref{100_0} all draw
+Figures~\ref{10000_0}--\ref{100_0e} all draw
 from the same underlying distribution that is overconfident
 (lying above the perfectly calibrated ideal),
 with the overconfidence peaking for $S_k$ around $0.25$
 (aside from a perfectly calibrated notch right around $0.25$),
 where $S_k$ is proportional to $(k-0.5)^2$;
-Figure~\ref{10000_0} sets $n =$ 10,000, Figure~\ref{1000_0} sets $n =$ 1,000,
-and Figure~\ref{100_0} sets $n =$ 100.
+Figures~\ref{10000_0} and~\ref{10000_0e} set $n =$ 10,000,
+Figures~\ref{1000_0} and~\ref{1000_0e} set $n =$ 1,000,
+and Figures~\ref{100_0} and~\ref{100_0e} set $n =$ 100.
 The cumulative plots look to work better.
 
-Figures~\ref{10000_1}--\ref{100_1} all draw
+Figures~\ref{10000_1}--\ref{100_1e} all draw
 from the same, relatively complicated underlying distribution,
 with $S_k$ being proportional to $\sqrt{k-0.5}$;
-Figure~\ref{10000_1} sets $n =$ 10,000, Figure~\ref{1000_1} sets $n =$ 1,000,
-and Figure~\ref{100_1} sets $n =$ 100.
+Figures~\ref{10000_1} and~\ref{10000_1e} set $n =$ 10,000,
+Figures~\ref{1000_1} and~\ref{1000_1e} set $n =$ 1,000,
+and Figures~\ref{100_1} and~\ref{100_1e} set $n =$ 100.
 The cumulative plots appear advantageous.
 
 In all cases with $n =$ 10,000, that is, in Figures~\ref{10000}, \ref{10000_0},
@@ -2962,7 +3202,7 @@ or (even more starkly) as when $n =$ 10,000.
 Naturally, the Kolmogorov-Smirnov and Kuiper statistics get larger
 for miscalibration that is solely overcalibration
 (and the same would be true of solely undercalibrated data),
-such as that in Figures~\ref{10000_0}--\ref{100_0}.
+such as that in Figures~\ref{10000_0}--\ref{100_0e}.
 
 
 \begin{figure}
@@ -2990,18 +3230,25 @@ such as that in Figures~\ref{10000_0}--\ref{100_0}.
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/10000_10_0_0/equisamp.pdf}}
 
-\vspace{\vertsep}
+\end{centering}
+\caption{$n =$ 10,000; $S_1$, $S_2$, \dots, $S_n$ are equispaced;
+         Kuiper's statistic is $0.1031 / \sigma = 25.25$,
+         Kolmogorov's and Smirnov's is $0.09849 / \sigma = 24.12$.
+Figure~\ref{10000e} displays the ground-truth reliability diagram.
+All plots, whether cumulative or conventional, appear to work well.
+}
+\label{10000}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/10000_10_0_0/exact.pdf}}
 
 \end{centering}
-\caption{$n =$ 10,000; $S_1$, $S_2$, \dots, $S_n$ are equispaced;
-         Kuiper's statistic is $0.1031 / \sigma = 25.25$,
-         Kolmogorov's and Smirnov's is $0.09849 / \sigma = 24.12$.
-All plots, whether cumulative or conventional, appear to work well.
-}
-\label{10000}
+\caption{Ground-truth reliability diagram for Figure~\ref{10000}}
+\label{10000e}
 \end{figure}
 
 
@@ -3030,18 +3277,25 @@ All plots, whether cumulative or conventional, appear to work well.
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/1000_10_0_0/equisamp.pdf}}
 
-\vspace{\vertsep}
+\end{centering}
+\caption{$n =$ 1,000; $S_1$, $S_2$, \dots, $S_n$ are equispaced;
+         Kuiper's statistic is $0.1195 / \sigma = 9.256$,
+         Kolmogorov's and Smirnov's is $0.1195 / \sigma = 9.256$.
+Figure~\ref{1000e} displays the ground-truth reliability diagram.
+All plots, whether cumulative or conventional, appear to work well.
+}
+\label{1000}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/1000_10_0_0/exact.pdf}}
 
 \end{centering}
-\caption{$n =$ 1,000; $S_1$, $S_2$, \dots, $S_n$ are equispaced;
-         Kuiper's statistic is $0.1195 / \sigma = 9.256$,
-         Kolmogorov's and Smirnov's is $0.1195 / \sigma = 9.256$.
-All plots, whether cumulative or conventional, appear to work well.
-}
-\label{1000}
+\caption{Ground-truth reliability diagram for Figure~\ref{1000}}
+\label{1000e}
 \end{figure}
 
 
@@ -3070,15 +3324,11 @@ All plots, whether cumulative or conventional, appear to work well.
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/100_4_0_0/equisamp.pdf}}
 
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                {./codes/unweighted/100_4_0_0/exact.pdf}}
-
 \end{centering}
 \caption{$n =$ 100; $S_1$, $S_2$, \dots, $S_n$ are equispaced;
          Kuiper's statistic is $0.1388 / \sigma = 3.399$,
          Kolmogorov's and Smirnov's is $0.1388 / \sigma = 3.399$.
+Figure~\ref{100e} displays the ground-truth reliability diagram.
 The conventional plots become increasingly problematic as $n$ reduces to 100
 from 10,000 and 1,000 in Figures~\ref{10000} and~\ref{1000},
 whereas the cumulative plot still detects roughly the right level
@@ -3089,6 +3339,17 @@ to detect any statistically significant miscalibration in that range of $S_k$
 (note the size of the triangle centered at the origin of the plot).
 }
 \label{100}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/100_4_0_0/exact.pdf}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{100}}
+\label{100e}
 \end{figure}
 
 
@@ -3117,15 +3378,11 @@ to detect any statistically significant miscalibration in that range of $S_k$
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/10000_10_1_2/equisamp.pdf}}
 
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                {./codes/unweighted/10000_10_1_2/exact.pdf}}
-
 \end{centering}
 \caption{$n =$ 10,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
          Kuiper's statistic is $0.1781 / \sigma = 48.77$,
          Kolmogorov's and Smirnov's is $0.1781 / \sigma = 48.77$.
+Figure~\ref{10000_0e} displays the ground-truth reliability diagram.
 All plots, whether cumulative or conventional, work well enough,
 though the reliability diagrams
 might be mistakenly misleading relative to the exact expectations,
@@ -3133,6 +3390,17 @@ at least without diligent attention to the significant variation
 with the number of bins.
 }
 \label{10000_0}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/10000_10_1_2/exact.pdf}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{10000_0}}
+\label{10000_0e}
 \end{figure}
 
 
@@ -3161,21 +3429,28 @@ with the number of bins.
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/1000_10_1_2/equisamp.pdf}}
 
-\vspace{\vertsep}
+\end{centering}
+\caption{$n =$ 1,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
+         Kuiper's statistic is $0.1907 / \sigma = 16.51$,
+         Kolmogorov's and Smirnov's is $0.1907 / \sigma = 16.51$.
+Figure~\ref{1000_0e} displays the ground-truth reliability diagram.
+As in Figure~\ref{10000_0}, all plots work sufficiently well,
+though the observed reliability diagrams may be misleading
+relative to the exact expectations,
+at least without careful attention to the variation with the number of bins.
+}
+\label{1000_0}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/1000_10_1_2/exact.pdf}}
 
 \end{centering}
-\caption{$n =$ 1,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
-         Kuiper's statistic is $0.1907 / \sigma = 16.51$,
-         Kolmogorov's and Smirnov's is $0.1907 / \sigma = 16.51$.
-As in Figure~\ref{10000_0}, all plots work sufficiently well,
-though the reliability diagrams may be misleading
-relative to the exact expectations,
-at least without careful attention to the variation with the number of bins.
-}
-\label{1000_0}
+\caption{Ground-truth reliability diagram for Figure~\ref{1000_0}}
+\label{1000_0e}
 \end{figure}
 
 
@@ -3204,15 +3479,11 @@ at least without careful attention to the variation with the number of bins.
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/100_4_1_2/equisamp.pdf}}
 
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                {./codes/unweighted/100_4_1_2/exact.pdf}}
-
 \end{centering}
 \caption{$n =$ 100; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
          Kuiper's statistic is $0.1893 / \sigma = 5.185$,
          Kolmogorov's and Smirnov's is $0.1867 / \sigma = 5.112$.
+Figure~\ref{100_0e} displays the ground-truth reliability diagram.
 The plots, whether cumulative or conventional, reveal similar information here,
 though the reliability diagrams with an equal number of observations per bin
 provide more reliable estimates than the other reliability diagrams.
@@ -3223,6 +3494,17 @@ with about the correct amount of miscalibration
 (the amount is correct since the secant lines have the expected slopes).
 }
 \label{100_0}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/100_4_1_2/exact.pdf}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{100_0}}
+\label{100_0e}
 \end{figure}
 
 
@@ -3251,15 +3533,11 @@ with about the correct amount of miscalibration
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/10000_10_2_1/equisamp.pdf}}
 
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                {./codes/unweighted/10000_10_2_1/exact.pdf}}
-
 \end{centering}
 \caption{$n =$ 10,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 1;
          Kuiper's statistic is $0.1475 / \sigma = 36.12$,
          Kolmogorov's and Smirnov's is $0.1089 / \sigma = 26.67$.
+Figure~\ref{10000_1e} displays the ground-truth reliability diagram.
 The cumulative plot captures more of the oscillations in the miscalibration,
 as do to some extent the reliability diagrams with an equal number
 of observations per bin; however, the variations in the reliability diagrams
@@ -3267,6 +3545,17 @@ could be difficult to interpret without access
 to the ground-truth exact expectations.
 }
 \label{10000_1}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/10000_10_2_1/exact.pdf}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{10000_1}}
+\label{10000_1e}
 \end{figure}
 
 
@@ -3295,15 +3584,11 @@ to the ground-truth exact expectations.
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/1000_10_2_1/equisamp.pdf}}
 
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                {./codes/unweighted/1000_10_2_1/exact.pdf}}
-
 \end{centering}
 \caption{$n =$ 1,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 1;
          Kuiper's statistic is $0.1452 / \sigma = 11.24$,
          Kolmogorov's and Smirnov's is $0.1095 / \sigma = 8.480$.
+Figure~\ref{1000_1e} displays the ground-truth reliability diagram.
 As in Figure~\ref{10000_1},
 the cumulative plot resolves more of the oscillations in the miscalibration,
 as do somewhat the reliability diagrams with an equal number
@@ -3311,6 +3596,17 @@ of observations per bin; that said, the variations in the reliability diagrams
 could be hard to interpret without access to the exact expectations.
 }
 \label{1000_1}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/1000_10_2_1/exact.pdf}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{1000_1}}
+\label{1000_1e}
 \end{figure}
 
 
@@ -3339,15 +3635,11 @@ could be hard to interpret without access to the exact expectations.
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/100_4_2_1/equisamp.pdf}}
 
-\vspace{\vertsep}
-
-\parbox{\imsize}{\includegraphics[width=\imsize]
-                {./codes/unweighted/100_4_2_1/exact.pdf}}
-
 \end{centering}
 \caption{$n =$ 100; $S_1$, $S_2$, \dots, $S_n$ are denser near 1;
          Kuiper's statistic is $0.1483 / \sigma = 3.632$,
          Kolmogorov's and Smirnov's is $0.1112 / \sigma = 2.723$.
+Figure~\ref{100_1e} displays the ground-truth reliability diagram.
 Just like in Figures~\ref{10000_1} and~\ref{1000_1},
 the cumulative plot captures more of the oscillations in the miscalibration,
 as do to some extent the reliability diagrams with an equal number
@@ -3357,9 +3649,20 @@ are difficult to interpret without access to the exact expectations.
 \label{100_1}
 \end{figure}
 
+\begin{figure}
+\begin{centering}
+
+\parbox{\imsize}{\includegraphics[width=\imsize]
+                {./codes/unweighted/100_4_2_1/exact.pdf}}
+
+\end{centering}
+\caption{Ground-truth reliability diagram for Figure~\ref{100_1}}
+\label{100_1e}
+\end{figure}
 
 
-\subsubsection{ImageNet}
+
+\subsubsection{ImageNet examples for assessing calibration}
 \label{aimagenetex}
 
 This subsubsection analyzes the standard training data set ``ImageNet-1000''
@@ -3382,7 +3685,7 @@ as discussed in the caption of Figure~\ref{imagenetcal}.
 
 
 
-\newpage
+\clearpage
 
 
 
@@ -3409,12 +3712,12 @@ around 5 of those confidence intervals.
 Beware when conducting multiple tests of significance
 (or be sure to adjust the confidence level accordingly).
 
-Figures~\ref{10000_00}--\ref{100_00} illustrate these cautions;
+Figures~\ref{10000_00}--\ref{100_00e} illustrate these cautions;
 these figures are analogous to those presented in Appendix~\ref{calibration},
 but with the observations drawn from the same predicted probabilities
 of success used to generate the graphs, so that the discrepancy
 from perfect calibration should be statistically insignificant.
-More precisely, Figures~\ref{10000_00}--\ref{100_00}
+More precisely, Figures~\ref{10000_00}--\ref{100_00e}
 all set $S_k$ to be proportional to $(k-0.5)^2$
 and draw $R_1$,~$R_2$, \dots, $R_n$ from independent Bernoulli distributions
 with expected success probabilities $S_1$,~$S_2$, \dots, $S_n$, respectively;
@@ -3424,8 +3727,8 @@ Figures~\ref{10000_00}, \ref{1000_00}, and~\ref{100_00}
 consider $n =$ 10,000, $n =$ 1,000, and $n =$ 100, respectively.
 Please note that the ranges of the vertical axes
 for the top rows of plots are tiny.
-The leftmost topmost plots in Figures~\ref{10000_00}--\ref{100_00}
-look like driftless random walks;
+The leftmost topmost plots in Figures~\ref{10000_00}, \ref{1000_00},
+and~\ref{100_00} look like driftless random walks;
 in fact, they really are driftless random walks.
 The variations of the graphs are comparable to the heights
 of the triangles centered at the origins.
@@ -3463,16 +3766,24 @@ its expected value under the null hypothesis of~(\ref{null}).
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/10000_10_1_3/equisamp.pdf}}
 
-\vspace{\vertsep}
+\end{centering}
+\caption{$n =$ 10,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
+         Kuiper's statistic is $0.004475 / \sigma = 1.226$,
+         Kolmogorov's and Smirnov's is $0.002627 / \sigma = 0.7194$.
+Figure~\ref{10000_00e} displays the ground-truth reliability diagram.
+}
+\label{10000_00}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/10000_10_1_3/exact.pdf}}
 
 \end{centering}
-\caption{$n =$ 10,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
-         Kuiper's statistic is $0.004475 / \sigma = 1.226$,
-         Kolmogorov's and Smirnov's is $0.002627 / \sigma = 0.7194$.}
-\label{10000_00}
+\caption{Ground-truth reliability diagram for Figure~\ref{10000_00}}
+\label{10000_00e}
 \end{figure}
 
 
@@ -3501,16 +3812,24 @@ its expected value under the null hypothesis of~(\ref{null}).
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/1000_10_1_3/equisamp.pdf}}
 
-\vspace{\vertsep}
+\end{centering}
+\caption{$n =$ 1,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
+         Kuiper's statistic is $0.01886 / \sigma = 1.633$,
+         Kolmogorov's and Smirnov's is $0.01606 / \sigma = 1.391$.
+Figure~\ref{1000_00e} displays the ground-truth reliability diagram.
+}
+\label{1000_00}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/1000_10_1_3/exact.pdf}}
 
 \end{centering}
-\caption{$n =$ 1,000; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
-         Kuiper's statistic is $0.01886 / \sigma = 1.633$,
-         Kolmogorov's and Smirnov's is $0.01606 / \sigma = 1.391$.}
-\label{1000_00}
+\caption{Ground-truth reliability diagram for Figure~\ref{1000_00}}
+\label{1000_00e}
 \end{figure}
 
 
@@ -3539,26 +3858,34 @@ its expected value under the null hypothesis of~(\ref{null}).
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/100_4_1_3/equisamp.pdf}}
 
-\vspace{\vertsep}
+\end{centering}
+\caption{$n =$ 100; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
+         Kuiper's statistic is $0.03541 / \sigma = 0.9696$,
+         Kolmogorov's and Smirnov's is $0.02050 / \sigma = 0.5615$.
+Figure~\ref{100_00e} displays the ground-truth reliability diagram.
+}
+\label{100_00}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
 
 \parbox{\imsize}{\includegraphics[width=\imsize]
                 {./codes/unweighted/100_4_1_3/exact.pdf}}
 
 \end{centering}
-\caption{$n =$ 100; $S_1$, $S_2$, \dots, $S_n$ are denser near 0;
-         Kuiper's statistic is $0.03541 / \sigma = 0.9696$,
-         Kolmogorov's and Smirnov's is $0.02050 / \sigma = 0.5615$.}
-\label{100_00}
+\caption{Ground-truth reliability diagram for Figure~\ref{100_00}}
+\label{100_00e}
 \end{figure}
 
 
 
-\newpage
+\clearpage
 
 
 
 \bibliography{paper}
-\bibliographystyle{siam}
+\bibliographystyle{vancouver}
 
 
 
