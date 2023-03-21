@@ -192,7 +192,15 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
           np.arange(0, 1 + 1 / majorticks, 1 / majorticks).tolist()]
     alist = (lenxf - 1) * np.arange(0, 1 + 1 / majorticks, 1 / majorticks)
     alist = alist.tolist()
-    plt.xticks([x[int(a)] for a in alist], ks)
+    # Jitter minor ticks that overlap with major ticks lest Pyplot omit them.
+    alabs = []
+    for a in alist:
+        multiple = x[int(a)] * majorticks
+        if abs(multiple - round(multiple)) > 1e-4:
+            alabs.append(x[int(a)])
+        else:
+            alabs.append(x[int(a)] * (1 - 1e-4))
+    plt.xticks(alabs, ks)
     ax2.xaxis.set_minor_formatter(FixedFormatter(
         [r'$A_k\!=\!{:.2f}$'.format(1 / majorticks)]
         + [r'${:.2f}$'.format(k / majorticks) for k in range(2, majorticks)]))
