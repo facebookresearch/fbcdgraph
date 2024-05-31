@@ -195,7 +195,7 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
     alabs = []
     for a in alist:
         multiple = x[int(a)] * majorticks
-        if abs(multiple - round(multiple)) > 1e-3:
+        if abs(multiple - round(multiple)) > multiple * 1e-3 / 2:
             alabs.append(x[int(a)])
         else:
             alabs.append(x[int(a)] * (1 + 1e-3))
