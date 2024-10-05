@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Copyright (c) Facebook, Inc. and its affiliates.
+Copyright (c) Meta Platforms, Inc. and affiliates.
 
 Plots of deviation of a subpop. from the full pop., both cumulative and classic
 
@@ -29,8 +29,8 @@ the root directory of this source tree.
 import math
 import os
 import subprocess
-import random
 import numpy as np
+from numpy.random import default_rng
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -77,6 +77,9 @@ def cumulative(r, s, inds, majorticks, minorticks, filename='cumulative.pdf',
     float
         quarter of the full height of the isosceles triangle
         at the origin in the plot
+    float
+        ordinate (vertical coordinate) at the greatest abscissa (horizontal
+        coordinate)
     """
 
     def histcounts(nbins, x):
@@ -172,7 +175,8 @@ def cumulative(r, s, inds, majorticks, minorticks, filename='cumulative.pdf',
     fft = np.insert(f - ft, 0, [0])[:(int(len(f) * fraction) + 1)]
     kuiper = np.max(fft) - np.min(fft)
     kolmogorov_smirnov = np.max(np.abs(fft))
-    return kuiper, kolmogorov_smirnov, lenscale
+    maxint = int(len(f) * fraction) - 1
+    return kuiper, kolmogorov_smirnov, lenscale, f[maxint] - ft[maxint]
 
 
 def equiscore(r, s, inds, nbins, filename='equiscore.pdf'):
@@ -403,8 +407,8 @@ if __name__ == '__main__':
 
             if iex == 1:
                 # Define the indices of the subset for the subpopulation.
-                np.random.seed(987654321)
-                inds = np.sort(np.random.permutation((m))[:n])
+                rng = default_rng(seed=987654321)
+                inds = np.sort(rng.permutation((m))[:n])
 
                 # Construct scores.
                 s = np.arange(0, 1, 1 / m) + 1 / (2 * m)
@@ -425,7 +429,7 @@ if __name__ == '__main__':
 
             if iex == 2:
                 # Define the indices of the subset for the subpopulation.
-                np.random.seed(987654321)
+                rng = default_rng(seed=987654321)
                 inds = np.arange(0, m ** (3 / 4), 1)
                 inds = np.unique(np.round(np.power(inds, 4 / 3))).astype(int)
                 inds = inds[0:(50 * (len(inds) // 50))]
@@ -469,13 +473,13 @@ if __name__ == '__main__':
             # avoiding numpy's random number generators
             # that are based on random bits --
             # they yield strange results for many seeds.
-            random.seed(987654321)
-            uniform = np.asarray([random.random() for _ in range(m)])
+            rng = default_rng(seed=987654321)
+            uniform = np.asarray([rng.random() for _ in range(m)])
             r = (uniform <= exact).astype(float)
 
             # Generate five plots and a text file reporting metrics.
             filename = dir + 'cumulative.pdf'
-            kuiper, kolmogorov_smirnov, lenscale = cumulative(
+            kuiper, kolmogorov_smirnov, lenscale, ordinate = cumulative(
                 r, s, inds, majorticks, minorticks, filename)
             filename = dir + 'metrics.txt'
             with open(filename, 'w') as f:
@@ -491,8 +495,10 @@ if __name__ == '__main__':
                 f.write(f'{(kuiper / lenscale):.4}\n')
                 f.write('Kolmogorov-Smirnov / lenscale:\n')
                 f.write(f'{(kolmogorov_smirnov / lenscale):.4}\n')
+                f.write('ordinate:\n')
+                f.write(f'{ordinate:.4}\n')
             filename = dir + 'cumulative_exact.pdf'
-            _, _, _ = cumulative(
+            _, _, _, _ = cumulative(
                 exact, s, inds, majorticks, minorticks, filename,
                 title='exact expectations')
             filename = dir + 'equiscore.pdf'
