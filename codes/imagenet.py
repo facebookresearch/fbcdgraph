@@ -250,7 +250,7 @@ def subpop_cumulative(
         r, s, inds, majorticks, minorticks, fraction, filename='cumulative',
         title='subpop. deviation is the slope as a function of $k/n$'):
     """Thin wrapper around subpop.cumulative for multiprocessing"""
-    kuiper, kolmogorov_smirnov, lenscale = subpop.cumulative(
+    kuiper, kolmogorov_smirnov, lenscale, _ = subpop.cumulative(
         r, s, inds, majorticks, minorticks, filename + '.pdf', title, fraction)
     write_metrics(filename + '.txt', int(len(inds)), fraction, lenscale,
                   kuiper, kolmogorov_smirnov)
