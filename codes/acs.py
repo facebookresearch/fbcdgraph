@@ -38,6 +38,7 @@ the root directory of this source tree.
 import math
 import numpy as np
 import os
+from numpy.random import default_rng
 
 from subpop_weighted import equiscores, equierrs, cumulative
 
@@ -197,14 +198,16 @@ for ex in exs:
         filename = dir + 'equiscores' + str(nbins) + '.pdf'
         equiscores(r, s, inds, nbins, filename, weights=w, left=0)
         filename = dir + 'equierrs' + str(nbins) + '.pdf'
-        nout[str(nbins)] = equierrs(r, s, inds, nbins, filename, weights=w)
+        rng = default_rng(seed=987654321)
+        nout[str(nbins)] = equierrs(
+            r, s, inds, nbins, rng, filename, weights=w)
         if nbins < 100:
             assert abs(nout[str(nbins)][0] - nbins) <= 3
             assert abs(nout[str(nbins)][1] - nbins) <= 3
     majorticks = 10
     minorticks = 300
     filename = dir + 'cumulative.pdf'
-    kuiper, kolmogorov_smirnov, lenscale = cumulative(
+    kuiper, kolmogorov_smirnov, lenscale, _ = cumulative(
         r, s, inds, majorticks, minorticks, ex['val'] is not None,
         filename=filename, weights=w)
     # Save metrics in a text file.
