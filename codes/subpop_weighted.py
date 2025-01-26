@@ -228,8 +228,8 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
     ax2.tick_params(which='minor', axis='x', top=True, direction='in', pad=-17)
     ax2.set_xticks(np.arange(1 / majorticks, 1, 1 / majorticks), minor=True)
     ks = ['{:.2f}'.format(a) for a in
-          np.arange(0, 1 + 1 / majorticks, 1 / majorticks).tolist()]
-    alist = (lenxf - 1) * np.arange(0, 1 + 1 / majorticks, 1 / majorticks)
+          np.arange(0, 1 + 1 / majorticks / 2, 1 / majorticks).tolist()]
+    alist = (lenxf - 1) * np.arange(0, 1 + 1 / majorticks / 2, 1 / majorticks)
     alist = alist.tolist()
     # Jitter minor ticks that overlap with major ticks lest Pyplot omit them.
     alabs = []
@@ -681,7 +681,7 @@ if __name__ == '__main__':
                     ind = 3 * m // 4 - 1
                     # Identify an index near the middle that belongs
                     # to the subpop. for which the two adjacent indices do not.
-                    while(
+                    while (
                             np.any(inds == (ind - 1))
                             or not np.any(inds == ind)
                             or np.any(inds == (ind + 1))):
