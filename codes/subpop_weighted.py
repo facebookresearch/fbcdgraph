@@ -129,8 +129,8 @@ def cumulative(r, s, inds, majorticks, minorticks, bernoulli=True,
         # Calculate an adjustment factor for the estimate of the variance
         # that will make the estimate unbiased.
         unbias = sc**2
-        unbias[np.where(sc**2 == sc2)] = 0
-        unbias[np.where(sc**2 != sc2)] /= (sc**2 - sc2)[np.where(sc**2 != sc2)]
+        unbias[sc**2 == sc2] = 0
+        unbias[sc**2 != sc2] /= (sc**2 - sc2)[sc**2 != sc2]
         return means, unbias * (rc2 / sc - means**2)
 
     assert all(s[k] <= s[k + 1] for k in range(len(s) - 1))
@@ -314,9 +314,9 @@ def equiscores(r, s, inds, nbins, filename='equiscore.pdf', weights=None,
             wbin[j] += w[k]
         # Normalize the sum for each bin to compute the arithmetic average.
         bina = np.divide(bina, wbin, where=wbin != 0)
-        bina[np.where(wbin == 0)] = np.nan
+        bina[wbin == 0] = np.nan
         binb = np.divide(binb, wbin, where=wbin != 0)
-        binb[np.where(wbin == 0)] = np.nan
+        binb[wbin == 0] = np.nan
         return wbin, bina, binb
 
     assert all(s[k] <= s[k + 1] for k in range(len(s) - 1))
@@ -404,9 +404,9 @@ def equierrs(r, s, inds, nbins, rng, filename='equibins.pdf', weights=None,
                 for k in range(len(inbin) - 1)]
         # Normalize the sum for each bin to compute the weighted average.
         bina = np.divide(bina, wbin, where=wbin != 0)
-        bina[np.where(wbin == 0)] = np.nan
+        bina[wbin == 0] = np.nan
         binb = np.divide(binb, wbin, where=wbin != 0)
-        binb[np.where(wbin == 0)] = np.nan
+        binb[wbin == 0] = np.nan
         return wbin, bina, binb
 
     def binbounds(nbins, w):

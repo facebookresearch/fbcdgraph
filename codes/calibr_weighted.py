@@ -46,7 +46,7 @@ def cumulative(r, s, majorticks, minorticks, filename='cumulative.pdf',
     r : array_like
         class labels (0 for incorrect and 1 for correct classification)
     s : array_like
-        success probabilities (must be unique and in strictly increasing order)
+        success probabilities (must be in non-decreasing order)
     majorticks : int
         number of major ticks on each of the horizontal axes
     minorticks : int
@@ -85,7 +85,7 @@ def cumulative(r, s, majorticks, minorticks, filename='cumulative.pdf',
             nbin[j] += 1
         return nbin
 
-    assert all(s[k] < s[k + 1] for k in range(len(s) - 1))
+    assert all(s[k] <= s[k + 1] for k in range(len(s) - 1))
     # Determine the weighting scheme.
     if weights is None:
         w = np.ones((len(s)))
@@ -96,18 +96,47 @@ def cumulative(r, s, majorticks, minorticks, filename='cumulative.pdf',
     # Create the figure.
     plt.figure()
     ax = plt.axes()
-    # Accumulate the weighted r and s, as well as w.
-    f = np.insert(np.cumsum(w * r), 0, [0])
-    ft = np.insert(np.cumsum(w * s), 0, [0])
-    x = np.insert(np.cumsum(w), 0, [0])
+    # Average the results and weights for repeated scores. Also compute factors
+    # for adjusting the variances of responses to account for the responses
+    # being averages of other responses (when the success probabilities need
+    # not be unique).
+    slist = []
+    rlist = []
+    wlist = []
+    vlist = []
+    rsum = 0
+    wsum = 0
+    wsos = 0
+    for k in range(len(s)):
+        rsum += r[k] * w[k]
+        wsum += w[k]
+        wsos += w[k]**2
+        if k == len(s) - 1 or not math.isclose(s[k], s[k + 1], rel_tol=1e-14):
+            slist.append(s[k])
+            rlist.append(rsum / wsum)
+            wlist.append(wsum)
+            vlist.append(wsos / wsum**2)
+            rsum = 0
+            wsum = 0
+            wsos = 0
+    ss = np.asarray(slist)
+    rs = np.asarray(rlist)
+    ws = np.asarray(wlist)
+    vs = np.asarray(vlist)
+    # Normalize the weights.
+    ws /= ws[:int(len(ws) * fraction)].sum()
+    # Accumulate the weighted rs and ss, as well as ws.
+    f = np.insert(np.cumsum(ws * rs), 0, [0])
+    ft = np.insert(np.cumsum(ws * ss), 0, [0])
+    x = np.insert(np.cumsum(ws), 0, [0])
     # Plot the difference.
     plt.plot(
         x[:int(len(x) * fraction)], (f - ft)[:int(len(f) * fraction)], 'k')
     # Make sure the plot includes the origin.
     plt.plot(0, 'k')
     # Add an indicator of the scale of 1/sqrt(n) to the vertical axis.
-    ssub = np.insert(s, 0, [0])[:(int(len(s) * fraction) + 1)]
-    lenscale = np.sqrt(np.sum(w**2 * ssub[1:] * (1 - ssub[1:])))
+    ssub = np.insert(ss, 0, [0])[:(int(len(ss) * fraction) + 1)]
+    lenscale = np.sqrt(np.sum(ws**2 * ssub[1:] * (1 - ssub[1:]) * vs))
     plt.plot(2 * lenscale, 'k')
     plt.plot(-2 * lenscale, 'k')
     kwargs = {
@@ -117,10 +146,10 @@ def cumulative(r, s, majorticks, minorticks, filename='cumulative.pdf',
     plt.arrow(.1e-100, 2 * lenscale, 0, -4 * lenscale, shape='right', **kwargs)
     plt.margins(x=0, y=.1)
     # Label the major ticks of the lower axis with the values of s.
-    ss = ['{:.2f}'.format(a) for a in
-          ssub[::(len(ssub) // majorticks)].tolist()]
+    sss = ['{:.2f}'.format(a) for a in
+           ssub[::(len(ssub) // majorticks)].tolist()]
     lenxf = int(len(x) * fraction)
-    plt.xticks(x[:lenxf:(lenxf // majorticks)], ss)
+    plt.xticks(x[:lenxf:(lenxf // majorticks)], sss)
     if len(ssub) >= 300 and minorticks >= 50:
         # Indicate the distribution of s via unlabeled minor ticks.
         plt.minorticks_on()
@@ -213,9 +242,9 @@ def equiprob(r, s, nbins, filename='equiprob.pdf', n_resamp=0, weights=None):
             wbin[j] += w[k]
         # Normalize the sum for each bin to compute the arithmetic average.
         bina = np.divide(bina, wbin, where=wbin != 0)
-        bina[np.where(wbin == 0)] = np.nan
+        bina[wbin == 0] = np.nan
         binb = np.divide(binb, wbin, where=wbin != 0)
-        binb[np.where(wbin == 0)] = np.nan
+        binb[wbin == 0] = np.nan
         return wbin, bina, binb
 
     assert all(s[k] <= s[k + 1] for k in range(len(s) - 1))
@@ -296,9 +325,9 @@ def equierr(r, s, nbins, filename='equierr.pdf', n_resamp=0, weights=None):
                 for k in range(len(inbin) - 1)]
         # Normalize the sum for each bin to compute the weighted average.
         bina = np.divide(bina, wbin, where=wbin != 0)
-        bina[np.where(wbin == 0)] = np.nan
+        bina[wbin == 0] = np.nan
         binb = np.divide(binb, wbin, where=wbin != 0)
-        binb[np.where(wbin == 0)] = np.nan
+        binb[wbin == 0] = np.nan
         return wbin, bina, binb
 
     def binbounds(nbins, w):
